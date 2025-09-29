@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Mini Battle</title>
+  <link rel="stylesheet" href="gamestyle.css">
+</head>
+<body>
+  <img class="pokemon-logo" src="Pokémon_logo.svg.png" alt="pokemon logo">
+
+  <div class="arena">
+    <!-- Player -->
+    <div class="player">
+      <img src="pikachu_icon.png" alt="Pikachu">
+      <h2>Pikachu</h2>
+      <div class="progressbar">
+        <div class="life" id="life-character">100/100</div>
+        <div class="health" id="bar-character"></div>
+      </div>
+    </div>
+
+    <!-- Enemy 1 -->
+    <div class="player">
+      <img src="charmander_icon.png" alt="Charmander">
+      <h2>Charmander</h2>
+      <div class="progressbar">
+        <div class="life" id="life-enemy1">100/100</div>
+        <div class="health" id="bar-enemy1"></div>
+      </div>
+    </div>
+
+    <!-- Enemy 2 -->
+    <div class="player">
+      <img src="bulbasaur_icon.png" alt="Bulbasaur">
+      <h2>Bulbasaur</h2>
+      <div class="progressbar">
+        <div class="life" id="life-enemy2">120/120</div>
+        <div class="health" id="bar-enemy2"></div>
+      </div>
+    </div>
+  </div>
+
+  <button id="btn-kick">Kick!</button>
+  <button id="btn-super">Super Kick</button>
+
+  <script src="game.js"></script>
+</body>
+</html>
