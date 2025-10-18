@@ -1,12 +1,55 @@
 const $btn = document.getElementById('btn-kick');
 const $btnSuper = document.getElementById('btn-super');
 
+function random(num) {
+  return Math.ceil(Math.random() * num);
+}
+
 const character = {
   name: 'Pikachu',
   defaultHP: 100,
   damageHP: 100,
   elHP: document.getElementById('life-character'),
   elProgressbar: document.getElementById('bar-character'),
+
+  renderHP() {
+    this.renderHPLife();
+    this.renderProgressbarHP();
+  },
+
+  renderHPLife() {
+    this.elHP.innerText = this.damageHP + '/' + this.defaultHP;
+  },
+
+  renderProgressbarHP() {
+    const percent = (this.damageHP / this.defaultHP) * 100;
+    this.elProgressbar.style.width = percent + '%';
+
+    if (percent > 60) {
+      this.elProgressbar.style.background = 'green';
+    } else if (percent > 30) {
+      this.elProgressbar.style.background = 'orange';
+    } else {
+      this.elProgressbar.style.background = 'red';
+    }
+  },
+
+  changeHP(count) {
+    if (this.damageHP === 0) return;
+
+    if (this.damageHP <= count) {
+      this.damageHP = 0;
+      this.renderHP();
+      console.log(`${this.name} загинув!`);
+      alert(`${this.name} загинув!`);
+    } else {
+      this.damageHP -= count;
+      this.renderHP();
+    }
+
+    // Перевіряємо стан гри після оновлення HP
+    checkGameOver();
+  }
 };
 
 const enemies = [
@@ -16,6 +59,11 @@ const enemies = [
     damageHP: 100,
     elHP: document.getElementById('life-enemy1'),
     elProgressbar: document.getElementById('bar-enemy1'),
+
+    renderHP: character.renderHP,
+    renderHPLife: character.renderHPLife,
+    renderProgressbarHP: character.renderProgressbarHP,
+    changeHP: character.changeHP,
   },
   {
     name: 'Bulbasaur',
@@ -23,37 +71,33 @@ const enemies = [
     damageHP: 120,
     elHP: document.getElementById('life-enemy2'),
     elProgressbar: document.getElementById('bar-enemy2'),
+
+    renderHP: character.renderHP,
+    renderHPLife: character.renderHPLife,
+    renderProgressbarHP: character.renderProgressbarHP,
+    changeHP: character.changeHP,
   }
 ];
 
-function random(num) {
-  return Math.ceil(Math.random() * num);
-}
+// --- Логіка бою ---
+$btn.addEventListener('click', () => battleTurn(20, 10));
+$btnSuper.addEventListener('click', () => battleTurn(40, 20));
 
-// Обробка кліку Kick
-$btn.addEventListener('click', () => battleTurn(20, 5));
-
-// Обробка кліку Super Kick
-$btnSuper.addEventListener('click', () => battleTurn(40, 15));
-
-// Функція одного ходу бою
 function battleTurn(characterDamage, enemyDamage) {
-  // Блокуємо кнопки поки йде хід
   $btn.disabled = true;
   $btnSuper.disabled = true;
 
-  // Атака героя всіх живих ворогів
-  enemies.forEach(enemy => changeHP(random(characterDamage), enemy));
+  // Герой атакує всіх живих ворогів
+  enemies.forEach(enemy => enemy.changeHP(random(characterDamage)));
 
-  // Через 1 секунду атака ворогів героя
+  // Через секунду вороги атакують героя
   setTimeout(() => {
     enemies.forEach(enemy => {
       if (enemy.damageHP > 0 && character.damageHP > 0) {
-        changeHP(random(enemyDamage), character);
+        character.changeHP(random(enemyDamage));
       }
     });
 
-    // Розблокуємо кнопки, якщо гра ще не закінчена
     if (character.damageHP > 0 && enemies.some(enemy => enemy.damageHP > 0)) {
       $btn.disabled = false;
       $btnSuper.disabled = false;
@@ -61,61 +105,31 @@ function battleTurn(characterDamage, enemyDamage) {
   }, 1000);
 }
 
-function renderHP(person) {
-  renderHPLife(person);
-  renderProgressbarHP(person);
-}
-
-function renderHPLife(person) {
-  person.elHP.innerText = person.damageHP + '/' + person.defaultHP;
-}
-
-function renderProgressbarHP(person) {
-  const percent = (person.damageHP / person.defaultHP) * 100;
-  person.elProgressbar.style.width = percent + '%';
-
-  if (percent > 60) {
-    person.elProgressbar.style.background = 'green';
-  } else if (percent > 30) {
-    person.elProgressbar.style.background = 'orange';
-  } else {
-    person.elProgressbar.style.background = 'red';
-  }
-}
-
-function changeHP(count, person) {
-  if (person.damageHP === 0) return; // вже мертвий, нічого не робимо
-
-  if (person.damageHP <= count) {
-    person.damageHP = 0;
-    renderHP(person);
-    console.log(person.name + ' програв бій!');
-  } else {
-    person.damageHP -= count;
-    renderHP(person);
-  }
-
-  // Перевірка на кінець гри
+// --- Перевірка кінця гри ---
+function checkGameOver() {
   const allEnemiesDead = enemies.every(enemy => enemy.damageHP === 0);
+  const heroDead = character.damageHP === 0;
 
-  if (character.damageHP === 0 || allEnemiesDead) {
-    $btn.disabled = true;
-    $btnSuper.disabled = true;
-
-    if (character.damageHP === 0 && allEnemiesDead) {
-      alert('Гра закінчена! Герой та всі вороги програли!');
-    } else if (character.damageHP === 0) {
-      alert('Гра закінчена! Герой програв!');
-    } else {
-      alert('Гра закінчена! Всі вороги програли!');
-    }
+  if (heroDead && allEnemiesDead) {
+    endGame('Гра закінчена! Герой та всі вороги загинули!');
+  } else if (heroDead) {
+    endGame('Гра закінчена! Герой програв!');
+  } else if (allEnemiesDead) {
+    endGame('Гра закінчена! Всі вороги переможені!');
   }
 }
 
-// Ініціалізація
+// --- Функція завершення гри ---
+function endGame(message) {
+  $btn.disabled = true;
+  $btnSuper.disabled = true;
+  setTimeout(() => alert(message), 200);
+}
+
+// --- Ініціалізація ---
 function init() {
-  renderHP(character);
-  enemies.forEach(renderHP);
+  character.renderHP();
+  enemies.forEach(enemy => enemy.renderHP());
 }
 
 init();
