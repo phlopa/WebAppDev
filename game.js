@@ -1,5 +1,6 @@
 const $btn = document.getElementById('btn-kick');
 const $btnSuper = document.getElementById('btn-super');
+const $logs = document.getElementById('logs'); // ← контейнер для логів
 
 const random = num => Math.ceil(Math.random() * num);
 
@@ -20,7 +21,13 @@ function generateLog(firstPerson, secondPerson, damage) {
 
   const text = logs[random(logs.length) - 1];
   return `${text} Втрати: ${damage}. HP ${firstPerson.name}: ${firstPerson.damageHP}/${firstPerson.defaultHP}.`;
+}
 
+// --- ФУНКЦІЯ ВИВЕДЕННЯ ЛОГУ ---
+function addLogToPage(text) {
+  const $p = document.createElement('p');
+  $p.innerText = text;
+  $logs.insertBefore($p, $logs.children[0]); // додає новий лог зверху
 }
 
 // --- ГЕРОЙ ---
@@ -56,6 +63,7 @@ const character = {
 
     const log = generateLog(this, attacker, actualDamage);
     console.log(log);
+    addLogToPage(log); // ← додаємо лог у div
 
     if (this.damageHP === 0) {
       console.log(`${name} загинув!`);
@@ -84,7 +92,7 @@ $btnSuper.addEventListener('click', () => battleTurn(40, 20));
 function battleTurn(characterDamage, enemyDamage) {
   [$btn, $btnSuper].forEach(btn => btn.disabled = true);
 
-  // Герой атакує всіх живих ворогів
+  // Герой атакує ворогів
   for (const enemy of enemies) {
     if (enemy.damageHP > 0) {
       const dmg = random(characterDamage);

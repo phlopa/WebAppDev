@@ -95,3 +95,17 @@ body {
       background: gray;
       cursor: not-allowed;
     }
+
+    #logs {
+    
+    background: rgba(0, 0, 0, 0.4); /* напівпрозорий чорний фон */
+    color: white;                 /* білий текст, щоб було видно */
+    font-family: monospace;       /* стиль як у консолі */
+    font-size: 14px;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 10px;
+    max-height: 200px;            /* обмежує висоту блоку */
+    overflow-y: auto;             /* додає прокрутку */
+    backdrop-filter: blur(4px);   /* робить фон трохи розмитим */
+  }
