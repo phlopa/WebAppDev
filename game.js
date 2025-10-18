@@ -1,10 +1,29 @@
 const $btn = document.getElementById('btn-kick');
 const $btnSuper = document.getElementById('btn-super');
 
-function random(num) {
-  return Math.ceil(Math.random() * num);
+const random = num => Math.ceil(Math.random() * num);
+
+// --- ФУНКЦІЯ ЛОГУ ---
+function generateLog(firstPerson, secondPerson, damage) {
+  const logs = [
+    `${firstPerson.name} згадав щось важливе, але раптом ${secondPerson.name}, не тямлячи себе від переляку, вдарив у передпліччя ворога.`,
+    `${firstPerson.name} вдавився, і за це ${secondPerson.name} зі страху приклав прямий удар коліном у лоб ворога.`,
+    `${firstPerson.name} задумався, але в цей час нахабний ${secondPerson.name}, прийнявши вольове рішення, нечутно підійшов ззаду й ударив.`,
+    `${firstPerson.name} отямився, але несподівано ${secondPerson.name} випадково наніс потужний удар.`,
+    `${firstPerson.name} вдавився, але в цей момент ${secondPerson.name} нехотячи розтрощив кулаком <вилучено цензурою> противника.`,
+    `${firstPerson.name} здивувався, а ${secondPerson.name}, похитнувшись, завдав підлого удару.`,
+    `${firstPerson.name} висякався, але раптом ${secondPerson.name} провів дробильний удар.`,
+    `${firstPerson.name} похитнувся, і раптом нахабний ${secondPerson.name} без причини вдарив у ногу противника.`,
+    `${firstPerson.name} засмутився, як раптом несподівано ${secondPerson.name} випадково вліпив ногою в живіт супернику.`,
+    `${firstPerson.name} намагався щось сказати, але раптом несподівано ${secondPerson.name} від нудьги розбив брову супернику.`
+  ];
+
+  const text = logs[random(logs.length) - 1];
+  return `${text} Втрати: ${damage}. HP ${firstPerson.name}: ${firstPerson.damageHP}/${firstPerson.defaultHP}.`;
+
 }
 
+// --- ГЕРОЙ ---
 const character = {
   name: 'Pikachu',
   defaultHP: 100,
@@ -13,101 +32,85 @@ const character = {
   elProgressbar: document.getElementById('bar-character'),
 
   renderHP() {
-    this.renderHPLife();
+    const { damageHP, defaultHP } = this;
+    this.elHP.innerText = `${damageHP}/${defaultHP}`;
     this.renderProgressbarHP();
   },
 
-  renderHPLife() {
-    this.elHP.innerText = this.damageHP + '/' + this.defaultHP;
-  },
-
   renderProgressbarHP() {
-    const percent = (this.damageHP / this.defaultHP) * 100;
-    this.elProgressbar.style.width = percent + '%';
-
-    if (percent > 60) {
-      this.elProgressbar.style.background = 'green';
-    } else if (percent > 30) {
-      this.elProgressbar.style.background = 'orange';
-    } else {
-      this.elProgressbar.style.background = 'red';
-    }
+    const { elProgressbar, damageHP, defaultHP } = this;
+    const percent = (damageHP / defaultHP) * 100;
+    elProgressbar.style.width = `${percent}%`;
+    elProgressbar.style.background =
+      percent > 60 ? 'green' :
+      percent > 30 ? 'orange' : 'red';
   },
 
-  changeHP(count) {
-    if (this.damageHP === 0) return;
+  changeHP(count, attacker) {
+    const { name, damageHP } = this;
+    if (damageHP === 0) return;
 
-    if (this.damageHP <= count) {
-      this.damageHP = 0;
-      this.renderHP();
-      console.log(`${this.name} загинув!`);
-      alert(`${this.name} загинув!`);
-    } else {
-      this.damageHP -= count;
-      this.renderHP();
+    const actualDamage = Math.min(count, this.damageHP);
+    this.damageHP -= actualDamage;
+    this.renderHP();
+
+    const log = generateLog(this, attacker, actualDamage);
+    console.log(log);
+
+    if (this.damageHP === 0) {
+      console.log(`${name} загинув!`);
+      alert(`${name} загинув!`);
     }
 
-    // Перевіряємо стан гри після оновлення HP
     checkGameOver();
   }
 };
 
+// --- ВОРОГИ ---
 const enemies = [
-  {
-    name: 'Charmander',
-    defaultHP: 100,
-    damageHP: 100,
-    elHP: document.getElementById('life-enemy1'),
-    elProgressbar: document.getElementById('bar-enemy1'),
+  { name: 'Charmander', defaultHP: 100, damageHP: 100, elHP: document.getElementById('life-enemy1'), elProgressbar: document.getElementById('bar-enemy1') },
+  { name: 'Bulbasaur', defaultHP: 120, damageHP: 120, elHP: document.getElementById('life-enemy2'), elProgressbar: document.getElementById('bar-enemy2') }
+].map(enemy => ({
+  ...enemy,
+  renderHP: character.renderHP,
+  renderProgressbarHP: character.renderProgressbarHP,
+  changeHP: character.changeHP
+}));
 
-    renderHP: character.renderHP,
-    renderHPLife: character.renderHPLife,
-    renderProgressbarHP: character.renderProgressbarHP,
-    changeHP: character.changeHP,
-  },
-  {
-    name: 'Bulbasaur',
-    defaultHP: 120,
-    damageHP: 120,
-    elHP: document.getElementById('life-enemy2'),
-    elProgressbar: document.getElementById('bar-enemy2'),
-
-    renderHP: character.renderHP,
-    renderHPLife: character.renderHPLife,
-    renderProgressbarHP: character.renderProgressbarHP,
-    changeHP: character.changeHP,
-  }
-];
-
-// --- Логіка бою ---
+// --- ЛОГІКА БОЮ ---
 $btn.addEventListener('click', () => battleTurn(20, 10));
 $btnSuper.addEventListener('click', () => battleTurn(40, 20));
 
 function battleTurn(characterDamage, enemyDamage) {
-  $btn.disabled = true;
-  $btnSuper.disabled = true;
+  [$btn, $btnSuper].forEach(btn => btn.disabled = true);
 
   // Герой атакує всіх живих ворогів
-  enemies.forEach(enemy => enemy.changeHP(random(characterDamage)));
+  for (const enemy of enemies) {
+    if (enemy.damageHP > 0) {
+      const dmg = random(characterDamage);
+      enemy.changeHP(dmg, character);
+    }
+  }
 
   // Через секунду вороги атакують героя
   setTimeout(() => {
-    enemies.forEach(enemy => {
+    for (const enemy of enemies) {
       if (enemy.damageHP > 0 && character.damageHP > 0) {
-        character.changeHP(random(enemyDamage));
+        const dmg = random(enemyDamage);
+        character.changeHP(dmg, enemy);
       }
-    });
+    }
 
-    if (character.damageHP > 0 && enemies.some(enemy => enemy.damageHP > 0)) {
-      $btn.disabled = false;
-      $btnSuper.disabled = false;
+    const aliveEnemies = enemies.some(({ damageHP }) => damageHP > 0);
+    if (character.damageHP > 0 && aliveEnemies) {
+      [$btn, $btnSuper].forEach(btn => btn.disabled = false);
     }
   }, 1000);
 }
 
-// --- Перевірка кінця гри ---
+// --- ПЕРЕВІРКА КІНЦЯ ГРИ ---
 function checkGameOver() {
-  const allEnemiesDead = enemies.every(enemy => enemy.damageHP === 0);
+  const allEnemiesDead = enemies.every(({ damageHP }) => damageHP === 0);
   const heroDead = character.damageHP === 0;
 
   if (heroDead && allEnemiesDead) {
@@ -119,17 +122,15 @@ function checkGameOver() {
   }
 }
 
-// --- Функція завершення гри ---
+// --- ЗАВЕРШЕННЯ ГРИ ---
 function endGame(message) {
-  $btn.disabled = true;
-  $btnSuper.disabled = true;
-  setTimeout(() => alert(message), 200);
+  [$btn, $btnSuper].forEach(btn => btn.disabled = true);
+  setTimeout(() => alert(message), 300);
 }
 
-// --- Ініціалізація ---
+// --- ІНІЦІАЛІЗАЦІЯ ---
 function init() {
   character.renderHP();
   enemies.forEach(enemy => enemy.renderHP());
 }
-
 init();
