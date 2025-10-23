@@ -4,6 +4,43 @@ const $logs = document.getElementById('logs'); // ← контейнер для 
 
 const random = num => Math.ceil(Math.random() * num);
 
+function createLimitedClickCounter(buttonElement, buttonName, limit = 6) {
+  let count = 0;
+  buttonElement.textContent = `${buttonName} (${limit})`;
+  function handler() {
+    // додаткова захистна перевірка (якщо вже видалили — нічого не робимо)
+    if (buttonElement.dataset.permaDisabled === 'true') return;
+
+    if (count < limit) {
+      count++;
+      const remaining = limit - count;
+      console.log(`Кнопка "${buttonName}" натиснута ${count} раз(и). Залишилось ${remaining}.`);
+      buttonElement.textContent = `${buttonName} (${remaining})`;
+    }
+
+    if (count === limit) {
+      console.log(`⚠ Межа натискань для "${buttonName}" досягнута (${limit}).`);
+      buttonElement.textContent = `${buttonName} (0)`;
+      // зробимо кнопку візуально вимкненою
+      buttonElement.disabled = true;
+      // позначимо, що її вже не можна більше вмикати
+      buttonElement.dataset.permaDisabled = 'true';
+      // видаляємо обробник — кнопка більше не реагуватиме навіть якщо її "уберуть" disabled=false
+      buttonElement.removeEventListener('click', handler);
+    }
+  }
+
+  return handler;
+}
+
+// ПРИКЛАД ПРИВ'ЯЗКИ:
+const countKick = createLimitedClickCounter($btn, 'Kick', 6);
+const countSuper = createLimitedClickCounter($btnSuper, 'Super Kick', 3);
+
+$btn.addEventListener('click', countKick);
+$btnSuper.addEventListener('click', countSuper);
+
+
 // --- ФУНКЦІЯ ЛОГУ ---
 function generateLog(firstPerson, secondPerson, damage) {
   const logs = [
@@ -111,7 +148,7 @@ function battleTurn(characterDamage, enemyDamage) {
 
     const aliveEnemies = enemies.some(({ damageHP }) => damageHP > 0);
     if (character.damageHP > 0 && aliveEnemies) {
-      [$btn, $btnSuper].forEach(btn => btn.disabled = false);
+      [$btn, $btnSuper].forEach(btn => (btn.dataset.permaDisabled !== 'true')?btn.disabled = false:btn.disabled = true);
     }
   }, 1000);
 }
