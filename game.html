@@ -1,3 +1,4 @@
+<!--game.html-->
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -6,44 +7,35 @@
   <link rel="stylesheet" href="gamestyle.css">
 </head>
 <body>
-  <img class="pokemon-logo" src="Pokémon_logo.svg.png" alt="pokemon logo">
+
+  <h1>Mini Pokémon Battle</h1>
 
   <div class="arena">
+
     <!-- Player -->
-    <div class="player">
-      <img src="pikachu_icon.png" alt="Pikachu">
+    <div class="player" id="player1">
+      <div id="img-player1"></div>
       <h2>Pikachu</h2>
       <div class="progressbar">
-        <div class="life" id="life-character">100/100</div>
-        <div class="health" id="bar-character"></div>
+        <div class="life" id="life-player1">100/100</div>
+        <div class="health" id="bar-player1"></div>
       </div>
     </div>
 
-    <!-- Enemy 1 -->
-    <div class="player">
-      <img src="charmander_icon.png" alt="Charmander">
+    <!-- Enemy -->
+    <div class="player" id="player2">
+      <div id="img-player2"></div>
       <h2>Charmander</h2>
       <div class="progressbar">
-        <div class="life" id="life-enemy1">100/100</div>
-        <div class="health" id="bar-enemy1"></div>
+        <div class="life" id="life-player2">100/100</div>
+        <div class="health" id="bar-player2"></div>
       </div>
     </div>
 
-    <!-- Enemy 2 -->
-    <div class="player">
-      <img src="bulbasaur_icon.png" alt="Bulbasaur">
-      <h2>Bulbasaur</h2>
-      <div class="progressbar">
-        <div class="life" id="life-enemy2">120/120</div>
-        <div class="health" id="bar-enemy2"></div>
-      </div>
-    </div>
   </div>
 
-  
-
-  <button id="btn-kick">Kick!</button>
-  <button id="btn-super">Super Kick</button>
+  <h3>Атаки</h3>
+  <div id="attacks"></div>
 
   <div id="logs"></div>
 
